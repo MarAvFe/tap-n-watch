@@ -19,6 +19,7 @@ Some steps that don't come out of the box from tutorials
 - In Imager’s advanced options (⚙️):
   - Enable **hostname**
   - Set **username and password**
+  - Set Timezone to `America/Costa_Rica` and keyboard to `us`. (Else defaults to `uk`)
   - Enable **SSH** (either via Imager or manually)
 
 ### 2. First Boot (with direct hdmi display control)
@@ -27,29 +28,25 @@ Some steps that don't come out of the box from tutorials
 - Logged in.
 - Confirmed `wlan0` was not connected. (`ip a show` has no IP)
 
-### 3. Disabled RF Kill
+### 3. Disabled RF Kill WiFi block
 
-- Found Wi-Fi was blocked:
+On login prompt, in a repeatable way I got 
+
+```
+Wi-Fi is currently blocked by rfkill
+Use raspi-config to set the country before use.
+```
+
+So to validate and workaround it (didn't see the raspi-config instruction on time)
 
 ```
 rfkill list
+sudo rfkill unblock wifi
 ```
 
-- Unblocked radios:
+### 4. Create Wi-Fi Config
 
-```
-sudo rfkill unblock all
-```
-
-### 4. Created Wi-Fi Config
-
-- Created file:
-
-```
-/etc/wpa_supplicant/wpa_supplicant-wlan0.conf
-```
-
-- Content:
+- WiFi config credentials file: `sudo vim.tiny /etc/wpa_supplicant/wpa_supplicant-wlan0.conf`
 
 ```
 country=CR  
@@ -57,18 +54,30 @@ ctrl_interface=/var/run/wpa_supplicant GROUP=netdev
 update_config=1  
 
 network={  
-  ssid="YourSSID"  
-  psk="YourPassword"
+  ssid="MySSID"  
+  psk="MyPassword"
 }
 ```
+
+- DHCP Config on Boot: `sudo vim.tiny /etc/systemd/network/wlan0.network`
+
+```
+[Match]
+Name=wlan0
+
+[Network]
+DHCP=yes
+```
+
 ⚠️ The filename **must match the interface** (`wlan0`) (`ip a show`).
 
-### 5. Enabled Auto-Start of Wi-Fi
+### 5. Enabled Auto-Start of Wi-Fi and DHCP
 
 - Enabled the systemd service for interface `wlan0`:
 
 ```
 sudo systemctl enable wpa_supplicant@wlan0
+sudo systemctl enable systemd-networkd
 ```
 
 - Rebooted and verified:
@@ -84,7 +93,7 @@ iw wlan0 link
 
 ### 6. Confirmed DHCP
 
-- DHCP client (`dhclient` or `systemd-networkd`) worked automatically.
+- DHCP client `systemd-networkd` worked automatically.
 - No need to manually request an IP after boot.
 
 ### 7. Final State
