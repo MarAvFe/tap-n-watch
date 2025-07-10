@@ -13,6 +13,8 @@ Some steps that don't come out of the box from tutorials
 
 ## Raspberry Pi Headless Config
 
+> Steps 1-5 take about 12 minutes
+
 ### 1. Flashing the OS
 
 - Used [**Raspberry Pi Imager**](https://www.raspberrypi.com/software/) to flash **Raspberry Pi OS Lite (32-bit)** to the microSD card.
